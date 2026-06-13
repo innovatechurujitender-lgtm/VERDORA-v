@@ -1,0 +1,26 @@
+{
+  "users": [
+    {
+      "id": "1781238840525",
+      "name": "JITENDER",
+      "email": "admin@verdora.com",
+      "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "role": "admin",
+      "status": "approved",
+      "business": "",
+      "phone": "",
+      "createdAt": "2026-06-12T04:34:00.525Z"
+    },
+    {
+      "id": "1781261373554",
+      "name": "JITENDER",
+      "email": "jitu@verdora.com",
+      "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "role": "admin",
+      "status": "approved",
+      "business": "",
+      "phone": "",
+      "createdAt": "2026-06-12T10:49:33.554Z"
+    }
+  ]
+}
