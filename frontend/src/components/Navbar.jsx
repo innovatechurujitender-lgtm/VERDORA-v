@@ -18,7 +18,7 @@ export default function Navbar({ cartCount }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const isSupplier = user && (user.role === "supplier" || user.role === "admin");
+  const isSeller = user && (user.role === "seller" || user.role === "admin");
   const isAdmin = user?.role === "admin";
 
   return (
@@ -26,7 +26,7 @@ export default function Navbar({ cartCount }) {
       <header
   className={`fixed top-0 w-full z-150 transition-all duration-500 ${
     scrolled
-  ? "bg-green-100 text-white shadow-lg py-2"
+  ? "bg-white/95 backdrop-blur-lg text-white shadow-lg py-2"
   : "bg-green-300 text-white py-4"
   }`}
 >
@@ -69,7 +69,7 @@ export default function Navbar({ cartCount }) {
                 </Button>
               </Link>
             )}
-            {isSupplier && (
+            {isSeller && (
               <Link href="/seller/dashboard" className="hidden md:block">
                 <Button variant="outline" className="border-primary/40 text-primary hover:bg-primary/10 text-sm px-4 h-9">
                   Seller Panel
@@ -92,9 +92,21 @@ export default function Navbar({ cartCount }) {
                 )}
               </Link>
               
-              <Link href="/login" className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center hover:border-primary transition-colors overflow-hidden">
-                <User className="w-4 h-4 text-muted-foreground" />
-              </Link>
+              {user ? (
+                <Link href="/profile" className="w-8 h-8 rounded-full bg-primary border border-primary flex items-center justify-center hover:border-primary/80 transition-colors overflow-hidden shadow-sm">
+                  {user.profile_picture ? (
+                    <img src={user.profile_picture} alt={user.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xs font-bold text-primary-foreground">
+                      {user.name ? user.name.charAt(0).toUpperCase() : "V"}
+                    </span>
+                  )}
+                </Link>
+              ) : (
+                <Link href="/login" className="w-8 h-8 rounded-full bg-secondary border border-border flex items-center justify-center hover:border-primary transition-colors overflow-hidden">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                </Link>
+              )}
 
               {/* Sidebar Toggle - Now on the right */}
               <button

@@ -2,8 +2,10 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Tag, ShieldCheck, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function HeroSection() {
+  const { user } = useAuth();
   return (
     <section className="relative min-h-[85vh] sm:min-h-dvh flex items-center pt-16 sm:pt-20 lg:pt-24 overflow-hidden px-4 sm:px-6 lg:px-8">
       {/* Background gradient */}
@@ -42,11 +44,13 @@ export default function HeroSection() {
                 Shop Now <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
-            <Link href="/register" className="w-full sm:w-auto">
-              <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-8 h-13 text-base shadow-sm cursor-pointer">
-                Sign up <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+            {!user && (
+              <Link href="/register" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-8 h-13 text-base shadow-sm cursor-pointer">
+                  Sign up <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </Link>
+            )}
             <Link href="/offers" className="w-full sm:w-auto">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-border hover:bg-secondary/80 px-8 h-13 text-base cursor-pointer">
                 <Tag className="w-4 h-4 mr-1.5" />

@@ -9,71 +9,86 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setUser(null);
     localStorage.removeItem("verdora_user");
+    localStorage.removeItem("verdora_email");
+    localStorage.removeItem("verdora_password");
   }, []);
 
   const refreshUser = useCallback(async () => {
-    const savedUser = localStorage.getItem("verdora_user");
-    if (!savedUser) return;
-    try {
-      const parsed = JSON.parse(savedUser);
-      if (!parsed.email || !parsed.password) {
-        logout();
-        return;
-      }
-      const res = await fetch(`/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: parsed.email, password: parsed.password })
-      });
-      if (!res.ok) {
-        logout();
-        return;
-      }
-      const data = await res.json();
-      const refreshed = { ...data, password: parsed.password };
-      setUser(refreshed);
-      localStorage.setItem("verdora_user", JSON.stringify(refreshed));
-    } catch {
-      logout();
+    const saved = localStorage.getItem("verdora_user");
+    if (!saved) {
+      setLoading(false);
+      return;
     }
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.email && parsed._emailLogin) {
+        setUser(parsed);
+        setLoading(false);
+        return;
+      }
+      if (parsed.firebase_uid) {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ firebase_uid: parsed.firebase_uid })
+        });
+        if (!res.ok) { logout(); setLoading(false); return; }
+        const data = await res.json();
+        setUser(data);
+        localStorage.setItem("verdora_user", JSON.stringify(data));
+      }
+    } catch { logout(); }
+    setLoading(false);
   }, [logout]);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("verdora_user");
-    if (savedUser) {
+    const saved = localStorage.getItem("verdora_user");
+    if (saved) {
       try {
-        const parsed = JSON.parse(savedUser);
-        if (parsed.email && parsed.password) {
+        const parsed = JSON.parse(saved);
+        if (parsed.email && parsed._emailLogin) {
           setUser(parsed);
-          refreshUser();
-        } else {
-          localStorage.removeItem("verdora_user");
+          setLoading(false);
+          return;
         }
-      } catch {
+        if (parsed.firebase_uid) { setUser(parsed); refreshUser(); return; }
         localStorage.removeItem("verdora_user");
-      }
+      } catch { localStorage.removeItem("verdora_user"); }
     }
     setLoading(false);
   }, [refreshUser]);
 
-  async function login(email, password) {
-    const res = await fetch(`/api/auth/login`, {
+  async function login(firebase_uid) {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firebase_uid })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Login failed");
+    setUser(data);
+    localStorage.setItem("verdora_user", JSON.stringify(data));
+    return data;
+  }
+
+  async function emailLogin(email, password) {
+    const res = await fetch("/api/auth/email/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
-    if (!res.ok) {
-      throw new Error(data.error || "Login failed");
-    }
-    const newUser = { ...data, password };
-    setUser(newUser);
-    localStorage.setItem("verdora_user", JSON.stringify(newUser));
-    return newUser;
+    if (!res.ok) throw new Error(data.error || "Login failed");
+    const userData = { ...data, _emailLogin: true };
+    setUser(userData);
+    localStorage.setItem("verdora_user", JSON.stringify(userData));
+    localStorage.setItem("verdora_email", email);
+    localStorage.setItem("verdora_password", password);
+    return userData;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, refreshUser, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, emailLogin, logout, refreshUser, loading, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
@@ -81,8 +96,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (context === undefined) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }

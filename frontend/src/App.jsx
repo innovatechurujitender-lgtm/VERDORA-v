@@ -7,7 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
-import SupplierRegister from "@/pages/SupplierRegister";
+import SellerRegister from "@/pages/SellerRegister";
 import Vegetables from "@/pages/Vegetables";
 import Fruits from "@/pages/Fruits";
 import BulkOrders from "@/pages/BulkOrders";
@@ -16,6 +16,9 @@ import Offers from "@/pages/Offers";
 import Cart from "@/pages/Cart";
 import SellerDashboard from "@/pages/SellerDashboard";
 import AdminPanel from "@/pages/AdminPanel";
+import Profile from "@/pages/Profile";
+import Checkout from "@/pages/Checkout";
+import Marketplace from "@/pages/Marketplace";
 
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { CartProvider } from "@/context/CartContext";
@@ -46,14 +49,17 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/supplier-register" component={SupplierRegister} />
+      <Route path="/seller-register" component={SellerRegister} />
       <Route path="/vegetables" component={Vegetables} />
       <Route path="/fruits" component={Fruits} />
       <Route path="/bulk-orders" component={BulkOrders} />
       <Route path="/farmers" component={Farmers} />
       <Route path="/offers" component={Offers} />
       <Route path="/cart" component={Cart} />
-      <ProtectedRoute path="/seller/dashboard" component={SellerDashboard} allowedRoles={["admin", "supplier"]} />
+      <Route path="/profile" component={Profile} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/marketplace" component={Marketplace} />
+      <ProtectedRoute path="/seller/dashboard" component={SellerDashboard} allowedRoles={["admin", "seller"]} />
       <ProtectedRoute path="/admin" component={AdminPanel} allowedRoles={["admin"]} />
       <Route component={NotFound} />
     </Switch>

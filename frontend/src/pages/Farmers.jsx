@@ -37,7 +37,7 @@ export default function Farmers() {
             <p className="text-sm sm:text-base text-muted-foreground">Buy directly from trusted and verified farmers across India</p>
           </motion.div>
 
-          {/* Become supplier CTA */}
+          {/* Become seller CTA */}
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -49,13 +49,13 @@ export default function Farmers() {
                 <Leaf className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-foreground text-sm sm:text-base">Are you a farmer or supplier?</h3>
+                <h3 className="font-bold text-foreground text-sm sm:text-base">Are you a farmer or seller?</h3>
                 <p className="text-xs sm:text-sm text-muted-foreground">Join VERDORA and reach thousands of business buyers directly</p>
               </div>
             </div>
             <Link href="/register" className="w-full md:w-auto">
               <Button className="w-full md:w-auto bg-primary hover:bg-primary/90 text-primary-foreground px-6 font-bold whitespace-nowrap shadow-[0_0_16px_rgba(50,205,50,0.2)]">
-                Become a Supplier <ArrowRight className="w-4 h-4 ml-2" />
+                Become a Seller <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </motion.div>
@@ -89,7 +89,7 @@ export default function Farmers() {
             </div>
             <h3 className="text-xl font-black text-foreground mb-2">No farmers listed yet</h3>
             <p className="text-muted-foreground text-sm mb-8 max-w-sm mx-auto">
-              We're verifying and onboarding farmers across India. Farmers and suppliers will appear here once registered.
+              We're verifying and onboarding farmers across India. Farmers and sellers will appear here once registered.
             </p>
             <Link href="/register">
               <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 font-bold shadow-[0_0_16px_rgba(50,205,50,0.2)]">

@@ -66,7 +66,7 @@ export default function Testimonials() {
               </Link>
               <Link href="/register" className="w-full sm:w-auto">
                 <Button variant="outline" className="w-full sm:w-auto border-border hover:border-primary hover:text-primary px-8 h-11 sm:h-12">
-                  Become a Supplier
+                  Become a Seller
                 </Button>
               </Link>
             </div>

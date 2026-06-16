@@ -1,17 +1,20 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowLeft, Mail, KeyRound, Lock, User } from "lucide-react";
+import { ArrowLeft, Mail, KeyRound, Lock, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoPath from "@assets/png-removebg-preview_1779963000572.png";
 
-export default function Register() {
+export default function SellerRegister() {
   const [, setLocation] = useLocation();
   const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
+  const [locationText, setLocationText] = useState("");
+  const [pincode, setPincode] = useState("");
+  const [locationLoading, setLocationLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -47,6 +50,7 @@ export default function Register() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
+      getLocation();
       setStep("details");
     } catch (err) {
       setMessage(err.message);
@@ -55,22 +59,44 @@ export default function Register() {
     }
   }
 
+  function getLocation() {
+    if (!navigator.geolocation) { setLocationText("Location unavailable"); return; }
+    setLocationLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`);
+          const data = await res.json();
+          const addr = data.address;
+          const parts = [addr.city || addr.town || addr.village || addr.county, addr.state].filter(Boolean);
+          setLocationText(parts.join(", "));
+        } catch {
+          setLocationText(`${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}`);
+        }
+        setLocationLoading(false);
+      },
+      () => { setLocationText("Location permission denied"); setLocationLoading(false); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!name || !password) { setMessage("Name and password required"); return; }
     if (password.length < 6) { setMessage("Password must be at least 6 characters"); return; }
+    if (!pincode) { setMessage("Pincode required"); return; }
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/auth/email/create-account", {
+      const res = await fetch("/api/auth/email/create-seller-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name })
+        body: JSON.stringify({ email, password, name, location: locationText, pincode })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setMessage(data.message);
-      setTimeout(() => setLocation("/login"), 1500);
+      setTimeout(() => setLocation("/login"), 2000);
     } catch (err) {
       setMessage(err.message);
     } finally {
@@ -104,9 +130,9 @@ export default function Register() {
             </Link>
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-black text-center text-foreground mb-1">Create Account</h1>
+          <h1 className="text-xl sm:text-2xl font-black text-center text-foreground mb-1">Register as Seller</h1>
           <p className="text-center text-muted-foreground text-xs sm:text-sm mb-6">
-            Join India's freshest B2B marketplace
+            List your farm produce on VERDORA
           </p>
 
           {step === "email" ? (
@@ -161,18 +187,8 @@ export default function Register() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button
-                  onClick={() => { setStep("email"); setOtp(""); setMessage(null); }}
-                  variant="outline"
-                  className="flex-1 h-12 rounded-xl"
-                >
-                  Change
-                </Button>
-                <Button
-                  onClick={verifyOtp}
-                  disabled={loading}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-bold rounded-xl shadow-[0_0_20px_rgba(50,205,50,0.25)]"
-                >
+                <Button onClick={() => { setStep("email"); setOtp(""); setMessage(null); }} variant="outline" className="flex-1 h-12 rounded-xl">Change</Button>
+                <Button onClick={verifyOtp} disabled={loading} className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-bold rounded-xl shadow-[0_0_20px_rgba(50,205,50,0.25)]">
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <span className="w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" />
@@ -181,57 +197,46 @@ export default function Register() {
                   ) : "Verify OTP"}
                 </Button>
               </div>
-              <button onClick={sendOtp} className="w-full text-xs text-primary hover:text-emerald-400 mt-1 transition-colors">
-                Resend OTP
-              </button>
+              <button onClick={sendOtp} className="w-full text-xs text-primary hover:text-emerald-400 mt-1 transition-colors">Resend OTP</button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1.5">Full Name</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full bg-secondary/50 border border-border focus:border-primary rounded-xl px-3 py-2.5 outline-none transition-colors text-foreground placeholder:text-muted-foreground text-sm"
-                />
+                <input type="text" required value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="w-full bg-secondary/50 border border-border focus:border-primary rounded-xl px-3 py-2.5 outline-none transition-colors text-foreground placeholder:text-muted-foreground text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1.5">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  disabled
-                  className="w-full bg-secondary/30 border border-border rounded-xl px-3 py-2.5 outline-none text-foreground text-sm"
-                />
+                <input type="email" value={email} disabled className="w-full bg-secondary/30 border border-border rounded-xl px-3 py-2.5 outline-none text-foreground text-sm" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-foreground mb-1.5">Password (min 6 characters)</label>
                 <div className="flex gap-2">
                   <Lock className="w-4 h-4 text-muted-foreground mt-3" />
-                  <input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
-                    className="flex-1 bg-secondary/50 border border-border focus:border-primary rounded-xl px-3 py-2.5 outline-none transition-colors text-foreground placeholder:text-muted-foreground text-sm"
-                  />
+                  <input type="password" required value={password} onChange={e => setPassword(e.target.value)} placeholder="At least 6 characters" className="flex-1 bg-secondary/50 border border-border focus:border-primary rounded-xl px-3 py-2.5 outline-none transition-colors text-foreground placeholder:text-muted-foreground text-sm" />
                 </div>
               </div>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-bold rounded-xl shadow-[0_0_20px_rgba(50,205,50,0.25)] mt-2"
-              >
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1.5">Location</label>
+                <div className="flex gap-2">
+                  <input type="text" value={locationText} onChange={e => setLocationText(e.target.value)} placeholder="Auto-detected location" className="flex-1 bg-secondary/50 border border-border focus:border-primary rounded-xl px-3 py-2.5 outline-none transition-colors text-foreground placeholder:text-muted-foreground text-sm" />
+                  <button type="button" onClick={getLocation} disabled={locationLoading} className="px-3 py-2.5 bg-secondary/50 border border-border rounded-xl text-muted-foreground hover:text-primary hover:border-primary transition-colors" title="Detect location">
+                    <MapPin className={`w-4 h-4 ${locationLoading ? "animate-pulse" : ""}`} />
+                  </button>
+                </div>
+                {locationLoading && <p className="text-xs text-muted-foreground mt-1">Detecting location...</p>}
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-foreground mb-1.5">Pincode</label>
+                <input type="text" required value={pincode} onChange={e => setPincode(e.target.value.replace(/\D/g, "").slice(0, 6))} placeholder="6-digit pincode" className="w-full bg-secondary/50 border border-border focus:border-primary rounded-xl px-3 py-2.5 outline-none transition-colors text-foreground placeholder:text-muted-foreground text-sm" />
+              </div>
+              <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-bold rounded-xl shadow-[0_0_20px_rgba(50,205,50,0.25)] mt-2">
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-primary-foreground/40 border-t-primary-foreground rounded-full animate-spin" />
-                    Creating Account...
+                    Submitting...
                   </span>
-                ) : "Create Account"}
+                ) : "Submit for Approval"}
               </Button>
             </form>
           )}
@@ -242,20 +247,11 @@ export default function Register() {
             </div>
           )}
 
-          <div className="mt-5 pt-5 border-t border-border space-y-3 text-center">
-            <Link href="/seller-register">
-              <Button
-                variant="outline"
-                className="w-full gap-2 border-primary/50 text-primary hover:bg-primary hover:text-primary-foreground h-11 rounded-xl"
-              >
-                <User className="w-4 h-4" />
-                Register as Seller
-              </Button>
-            </Link>
+          <div className="mt-5 pt-5 border-t border-border text-center">
             <p className="text-muted-foreground text-sm">
-              Already have an account?{" "}
-              <Link href="/login" className="text-primary hover:text-emerald-400 font-semibold transition-colors">
-                Sign in
+              Already a buyer?{" "}
+              <Link href="/register" className="text-primary hover:text-emerald-400 font-semibold transition-colors">
+                Create buyer account
               </Link>
             </p>
           </div>

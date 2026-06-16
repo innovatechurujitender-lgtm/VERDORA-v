@@ -51,7 +51,7 @@ export default function Offers() {
             </div>
             <h3 className="text-lg sm:text-xl font-black text-foreground mb-2">No offers available yet</h3>
             <p className="text-muted-foreground text-xs sm:text-sm mb-6 sm:mb-8 max-w-sm mx-auto">
-              Special deals and offers will appear here once suppliers start listing products on the platform.
+              Special deals and offers will appear here once sellers start listing products on the platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register" className="w-full sm:w-auto">

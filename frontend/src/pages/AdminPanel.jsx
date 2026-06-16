@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, Check, X, ShieldCheck,
   Search, LogOut, ArrowLeft, UserCheck, UserX, Clock,
-  Mail, Phone, MapPin, Building, MoreHorizontal
+  Mail, Phone, MapPin, Building, Ban, Unlock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoPath from "@assets/png-removebg-preview_1779963000572.png";
@@ -20,15 +20,15 @@ export default function AdminPanel() {
   const [actionLoading, setActionLoading] = useState(null);
 
   const getAuthHeaders = useCallback(() => {
-    if (!user?.email || !user?.password) return {};
-    return { email: user.email, password: user.password };
+    if (!user?.id) return {};
+    return { userid: user.id };
   }, [user]);
 
   const fetchUsers = useCallback(async () => {
     setFetching(true);
     try {
       const headers = getAuthHeaders();
-      if (!headers.email || !headers.password) {
+      if (!headers.userid) {
         setUsers([]);
         return;
       }
@@ -57,11 +57,10 @@ export default function AdminPanel() {
   async function handleApprove(id) {
     setActionLoading(id);
     try {
-      const res = await fetch(`/api/admin/users/${id}/approve`, {
+      await fetch(`/api/admin/users/${id}/approve`, {
         method: "POST",
         headers: getAuthHeaders()
       });
-      if (!res.ok) throw new Error("Failed to approve");
       fetchUsers();
     } catch {
       fetchUsers();
@@ -73,11 +72,40 @@ export default function AdminPanel() {
   async function handleReject(id) {
     setActionLoading(id);
     try {
-      const res = await fetch(`/api/admin/users/${id}/reject`, {
+      await fetch(`/api/admin/users/${id}/reject`, {
         method: "POST",
         headers: getAuthHeaders()
       });
-      if (!res.ok) throw new Error("Failed to reject");
+      fetchUsers();
+    } catch {
+      fetchUsers();
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleBan(id) {
+    setActionLoading(id);
+    try {
+      await fetch(`/api/admin/users/${id}/ban`, {
+        method: "POST",
+        headers: getAuthHeaders()
+      });
+      fetchUsers();
+    } catch {
+      fetchUsers();
+    } finally {
+      setActionLoading(null);
+    }
+  }
+
+  async function handleUnban(id) {
+    setActionLoading(id);
+    try {
+      await fetch(`/api/admin/users/${id}/unban`, {
+        method: "POST",
+        headers: getAuthHeaders()
+      });
       fetchUsers();
     } catch {
       fetchUsers();
@@ -90,6 +118,7 @@ export default function AdminPanel() {
     if (filter === "pending") return u.status === "pending";
     if (filter === "approved") return u.status === "approved";
     if (filter === "rejected") return u.status === "rejected";
+    if (filter === "banned") return u.status === "banned";
     return true;
   }).filter(u => {
     if (!search) return true;
@@ -101,7 +130,8 @@ export default function AdminPanel() {
     total: users.length,
     pending: users.filter(u => u.status === "pending").length,
     approved: users.filter(u => u.status === "approved").length,
-    rejected: users.filter(u => u.status === "rejected").length
+    rejected: users.filter(u => u.status === "rejected").length,
+    banned: users.filter(u => u.status === "banned").length
   };
 
   const filters = [
@@ -109,6 +139,7 @@ export default function AdminPanel() {
     { key: "pending", label: "Pending", count: stats.pending },
     { key: "approved", label: "Approved", count: stats.approved },
     { key: "rejected", label: "Rejected", count: stats.rejected },
+    { key: "banned", label: "Banned", count: stats.banned },
   ];
 
   return (
@@ -142,12 +173,13 @@ export default function AdminPanel() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4 mb-6 sm:mb-8">
           {[
             { label: "Total Users", value: stats.total, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
             { label: "Pending", value: stats.pending, icon: Clock, color: "text-yellow-500", bg: "bg-yellow-500/10" },
             { label: "Approved", value: stats.approved, icon: UserCheck, color: "text-emerald-500", bg: "bg-emerald-500/10" },
             { label: "Rejected", value: stats.rejected, icon: UserX, color: "text-red-500", bg: "bg-red-500/10" },
+            { label: "Banned", value: stats.banned, icon: Ban, color: "text-orange-500", bg: "bg-orange-500/10" },
           ].map((card, i) => {
             const Icon = card.icon;
             return (
@@ -207,11 +239,11 @@ export default function AdminPanel() {
             <div>
               {/* Header - Desktop */}
               <div className="hidden sm:grid sm:grid-cols-12 gap-3 px-5 py-3 border-b border-border/50 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                <div className="col-span-4">User</div>
+                <div className="col-span-3">User</div>
                 <div className="col-span-2">Role</div>
                 <div className="col-span-2">Status</div>
                 <div className="col-span-2">Details</div>
-                <div className="col-span-2 text-right">Actions</div>
+                <div className="col-span-3 text-right">Actions</div>
               </div>
 
               {/* Rows */}
@@ -233,7 +265,7 @@ export default function AdminPanel() {
                       {u.business && <span className="text-xs text-muted-foreground">{u.business}</span>}
                       {u.location && <span className="text-xs text-muted-foreground">{u.location}</span>}
                     </div>
-                    <div className="flex gap-2 pt-1">
+                    <div className="flex gap-2 pt-1 flex-wrap">
                       {u.status === "pending" && (
                         <>
                           <button onClick={() => handleApprove(u.id)} disabled={actionLoading === u.id} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 disabled:opacity-50">
@@ -244,18 +276,36 @@ export default function AdminPanel() {
                           </button>
                         </>
                       )}
-                      {u.status !== "pending" && (
-                        <div className="flex-1 text-center">
-                          <span className="text-xs text-muted-foreground">
-                            {u.status === "approved" ? "Approved" : "Rejected"}
-                          </span>
-                        </div>
+                      {u.status === "approved" && (
+                        <>
+                          <button onClick={() => handleReject(u.id)} disabled={actionLoading === u.id} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20 disabled:opacity-50">
+                            {actionLoading === u.id ? <span className="w-3 h-3 border-2 border-red-500/40 border-t-red-500 rounded-full animate-spin" /> : <X className="w-3.5 h-3.5" />} Reject
+                          </button>
+                          <button onClick={() => handleBan(u.id)} disabled={actionLoading === u.id} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20 disabled:opacity-50">
+                            {actionLoading === u.id ? <span className="w-3 h-3 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Ban
+                          </button>
+                        </>
+                      )}
+                      {u.status === "rejected" && (
+                        <>
+                          <button onClick={() => handleApprove(u.id)} disabled={actionLoading === u.id} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 disabled:opacity-50">
+                            {actionLoading === u.id ? <span className="w-3 h-3 border-2 border-emerald-500/40 border-t-emerald-500 rounded-full animate-spin" /> : <Check className="w-3.5 h-3.5" />} Approve
+                          </button>
+                          <button onClick={() => handleBan(u.id)} disabled={actionLoading === u.id} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 border border-orange-500/20 disabled:opacity-50">
+                            {actionLoading === u.id ? <span className="w-3 h-3 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Ban
+                          </button>
+                        </>
+                      )}
+                      {u.status === "banned" && (
+                        <button onClick={() => handleUnban(u.id)} disabled={actionLoading === u.id} className="flex-1 flex items-center justify-center gap-1 py-1.5 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-500 border border-blue-500/20 disabled:opacity-50">
+                          {actionLoading === u.id ? <span className="w-3 h-3 border-2 border-blue-500/40 border-t-blue-500 rounded-full animate-spin" /> : <Unlock className="w-3.5 h-3.5" />} Unban
+                        </button>
                       )}
                     </div>
                   </div>
 
                   {/* Desktop view */}
-                  <div className="hidden sm:flex col-span-4 items-center gap-3">
+                  <div className="hidden sm:flex col-span-3 items-center gap-3">
                     <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">
                       {u.name?.charAt(0)?.toUpperCase()}
                     </div>
@@ -279,8 +329,8 @@ export default function AdminPanel() {
                       {!u.business && !u.location && !u.phone && !u.mobile && <span className="text-muted-foreground/50">—</span>}
                     </div>
                   </div>
-                  <div className="hidden sm:flex col-span-2 items-center justify-end gap-2">
-                      {u.status === "pending" ? (
+                  <div className="hidden sm:flex col-span-3 items-center justify-end gap-2">
+                    {u.status === "pending" && (
                       <>
                         <button onClick={() => handleApprove(u.id)} disabled={actionLoading === u.id}
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all disabled:opacity-50"
@@ -289,10 +339,31 @@ export default function AdminPanel() {
                           className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 transition-all disabled:opacity-50"
                         >{actionLoading === u.id ? <span className="w-3 h-3 border-2 border-red-500/40 border-t-red-500 rounded-full animate-spin" /> : <X className="w-3.5 h-3.5" />} Reject</button>
                       </>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">
-                        {u.status === "approved" ? "Approved" : "Rejected"}
-                      </span>
+                    )}
+                    {u.status === "approved" && (
+                      <>
+                        <button onClick={() => handleReject(u.id)} disabled={actionLoading === u.id}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20 transition-all disabled:opacity-50"
+                        >{actionLoading === u.id ? <span className="w-3 h-3 border-2 border-red-500/40 border-t-red-500 rounded-full animate-spin" /> : <X className="w-3.5 h-3.5" />} Reject</button>
+                        <button onClick={() => handleBan(u.id)} disabled={actionLoading === u.id}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border border-orange-500/20 transition-all disabled:opacity-50"
+                        >{actionLoading === u.id ? <span className="w-3 h-3 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Ban</button>
+                      </>
+                    )}
+                    {u.status === "rejected" && (
+                      <>
+                        <button onClick={() => handleApprove(u.id)} disabled={actionLoading === u.id}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all disabled:opacity-50"
+                        >{actionLoading === u.id ? <span className="w-3 h-3 border-2 border-emerald-500/40 border-t-emerald-500 rounded-full animate-spin" /> : <Check className="w-3.5 h-3.5" />} Approve</button>
+                        <button onClick={() => handleBan(u.id)} disabled={actionLoading === u.id}
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-orange-500/10 text-orange-500 hover:bg-orange-500/20 border border-orange-500/20 transition-all disabled:opacity-50"
+                        >{actionLoading === u.id ? <span className="w-3 h-3 border-2 border-orange-500/40 border-t-orange-500 rounded-full animate-spin" /> : <Ban className="w-3.5 h-3.5" />} Ban</button>
+                      </>
+                    )}
+                    {u.status === "banned" && (
+                      <button onClick={() => handleUnban(u.id)} disabled={actionLoading === u.id}
+                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border border-blue-500/20 transition-all disabled:opacity-50"
+                      >{actionLoading === u.id ? <span className="w-3 h-3 border-2 border-blue-500/40 border-t-blue-500 rounded-full animate-spin" /> : <Unlock className="w-3.5 h-3.5" />} Unban</button>
                     )}
                   </div>
                 </motion.div>
@@ -308,7 +379,7 @@ export default function AdminPanel() {
 function RoleBadge({ role }) {
   const colors = {
     admin: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    supplier: "bg-primary/10 text-primary border-primary/20",
+    seller: "bg-primary/10 text-primary border-primary/20",
     buyer: "bg-blue-500/10 text-blue-500 border-blue-500/20"
   };
   return (
@@ -322,7 +393,8 @@ function StatusBadge({ status }) {
   const config = {
     pending: { icon: Clock, color: "text-yellow-500 bg-yellow-500/10 border-yellow-500/20", label: "Pending" },
     approved: { icon: Check, color: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20", label: "Approved" },
-    rejected: { icon: X, color: "text-red-500 bg-red-500/10 border-red-500/20", label: "Rejected" }
+    rejected: { icon: X, color: "text-red-500 bg-red-500/10 border-red-500/20", label: "Rejected" },
+    banned: { icon: Ban, color: "text-orange-500 bg-orange-500/10 border-orange-500/20", label: "Banned" }
   };
   const c = config[status] || config.pending;
   const Icon = c.icon;

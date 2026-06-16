@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { ShoppingCart, ArrowLeft, Trash2, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 
 export default function Cart() {
   const { cartCount, cartItems, addToCart, decreaseQty, clearCart } = useCart();
+  const [, setLocation] = useLocation();
 
   // Compute total
   const total = cartItems.reduce((sum, item) => {
@@ -105,7 +106,7 @@ export default function Cart() {
                   <span className="text-muted-foreground text-sm">Subtotal ({cartCount} items)</span>
                   <span className="font-black text-lg text-primary">₹{total.toFixed(0)}</span>
                 </div>
-                <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 text-base">
+                <Button onClick={() => setLocation("/checkout")} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-12 text-base">
                   Proceed to Checkout
                 </Button>
                 <button

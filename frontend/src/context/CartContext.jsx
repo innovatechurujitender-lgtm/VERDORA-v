@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 
 const CartContext = createContext({
   cartCount: 0,
@@ -9,7 +9,16 @@ const CartContext = createContext({
 });
 
 export function CartProvider({ children }) {
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const saved = localStorage.getItem("verdora_cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("verdora_cart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0);
 

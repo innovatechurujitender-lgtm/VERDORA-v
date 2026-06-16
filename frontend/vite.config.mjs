@@ -8,11 +8,7 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    qrcode(),
-  ],
+  plugins: [react(), tailwindcss(), qrcode()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
@@ -33,7 +29,10 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:5000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, "/api"),
+      },
+      "/uploads": {
+        target: "http://localhost:5000",
+        changeOrigin: true,
       },
     },
   },

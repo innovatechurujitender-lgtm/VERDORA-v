@@ -75,12 +75,12 @@ export default function BulkOrders() {
             </div>
             <h3 className="text-xl font-black text-foreground mb-2">No bulk packs listed yet</h3>
             <p className="text-muted-foreground text-sm mb-8 max-w-sm mx-auto">
-              Bulk listings will appear here once suppliers join the platform. You can also request a custom quote.
+              Bulk listings will appear here once sellers join the platform. You can also request a custom quote.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/register">
                 <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 font-bold shadow-[0_0_16px_rgba(50,205,50,0.2)]">
-                  Become a Supplier <ArrowRight className="w-4 h-4 ml-2" />
+                  Become a Seller <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Link href="/farmers">

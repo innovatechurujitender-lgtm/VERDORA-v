@@ -11,6 +11,10 @@
     "install:all": "cd backend && npm install && cd ../frontend && npm install"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "netlify-cli": "^26.1.0"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }

@@ -15,7 +15,9 @@ import {
   Package,
   Users,
   Tag,
-  ShieldCheck
+  ShieldCheck,
+  User,
+  Store
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoPath from "@assets/png-removebg-preview_1779963000572.png";
@@ -27,7 +29,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
 
-  const isSupplier = user && (user.role === "supplier" || user.role === "admin");
+  const isSeller = user && (user.role === "seller" || user.role === "admin");
   const isBuyer = user && user.role === "buyer";
 
   const allNavItems = [
@@ -36,6 +38,7 @@ export default function Sidebar({ isOpen, onClose }) {
     // Buyer Navigation
     { name: "Vegetables", href: "/vegetables", icon: Leaf, buyerOnly: true },
     { name: "Fruits", href: "/fruits", icon: Apple, buyerOnly: true },
+    { name: "Farmers Market", href: "/marketplace", icon: Store, buyerOnly: true },
     { name: "Premium Vegetable", href: "/vegetables", icon: Star, buyerOnly: true },
     { name: "Premium Fruits", href: "/fruits", icon: Star, buyerOnly: true },
     { name: "My Cart", href: "/cart", icon: ShoppingCart, buyerOnly: true },
@@ -44,14 +47,14 @@ export default function Sidebar({ isOpen, onClose }) {
     { name: "Offers", href: "/offers", icon: Tag, buyerOnly: true },
     
     // Seller Specific Options
-    { name: "Upload Fruits", href: "/seller/dashboard?tab=upload-fruits", icon: Upload, supplierOnly: true },
-    { name: "Upload Vegetables", href: "/seller/dashboard?tab=upload-vegetables", icon: Upload, supplierOnly: true },
-    { name: "Earning", href: "/seller/dashboard?tab=payments", icon: Wallet, supplierOnly: true },
-    { name: "Upload Premium", href: "/seller/dashboard?tab=upload-premium", icon: Star, supplierOnly: true },
+    { name: "Upload Fruits", href: "/seller/dashboard?tab=upload-fruits", icon: Upload, sellerOnly: true },
+    { name: "Upload Vegetables", href: "/seller/dashboard?tab=upload-vegetables", icon: Upload, sellerOnly: true },
+    { name: "Earning", href: "/seller/dashboard?tab=payments", icon: Wallet, sellerOnly: true },
+    { name: "Upload Premium", href: "/seller/dashboard?tab=upload-premium", icon: Star, sellerOnly: true },
   ];
 
   const navItems = allNavItems.filter(item => {
-    if (item.supplierOnly) return !!isSupplier;
+    if (item.sellerOnly) return !!isSeller;
     if (item.buyerOnly) return !user || !!isBuyer;
     return true;
   });
@@ -157,7 +160,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 </Button>
               </Link>
             )}
-            {!!isSupplier && (
+            {!!isSeller && (
               <Link href="/seller/dashboard">
                 <Button 
                   onClick={onClose}
@@ -170,35 +173,32 @@ export default function Sidebar({ isOpen, onClose }) {
               </Link>
             )}
             
-            {!user ? (
-              <div className="flex gap-2">
-                <Link href="/login" className="flex-1">
-                  <Button 
-                    onClick={onClose}
-                    variant="ghost" 
-                    className="w-full text-sidebar-foreground hover:bg-sidebar-accent rounded-xl"
-                  >
-                    Login
+            {user ? (
+              <div className="flex flex-col gap-2">
+                <Link href="/profile">
+                  <Button onClick={onClose} variant="outline" className="w-full justify-start gap-3 border-sidebar-border hover:bg-sidebar-accent text-sidebar-foreground h-11 rounded-xl group">
+                    <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center overflow-hidden shrink-0">
+                      {user.profile_picture ? (
+                        <img src={user.profile_picture} alt={user.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[10px] font-bold text-primary-foreground">{user.name ? user.name.charAt(0).toUpperCase() : "V"}</span>
+                      )}
+                    </div>
+                    <span className="font-medium truncate">{user.name || "Profile"}</span>
                   </Button>
                 </Link>
-                <Link href="/register" className="flex-1">
-                  <Button 
-                    onClick={onClose}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20"
-                  >
-                    Join
-                  </Button>
-                </Link>
+                <Button onClick={() => { logout(); onClose(); }} variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 rounded-xl">
+                  Logout
+                </Button>
               </div>
             ) : (
               <div className="flex gap-2">
-                <Button 
-                  onClick={() => { logout(); onClose(); }}
-                  variant="outline"
-                  className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 rounded-xl"
-                >
-                  Logout
-                </Button>
+                <Link href="/login" className="flex-1">
+                  <Button onClick={onClose} variant="ghost" className="w-full text-sidebar-foreground hover:bg-sidebar-accent rounded-xl">Login</Button>
+                </Link>
+                <Link href="/register" className="flex-1">
+                  <Button onClick={onClose} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20">Join</Button>
+                </Link>
               </div>
             )}
           </div>

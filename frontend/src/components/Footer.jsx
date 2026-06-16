@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function Footer() {
   const { user } = useAuth();
-  const isSupplier = user?.role === "supplier" || user?.role === "admin";
+  const isSeller = user?.role === "seller" || user?.role === "admin";
 
   return (
     <footer className="bg-green-700 text-green-400 border-t-2 border-primary pt-16 pb-8 relative overflow-hidden">
@@ -51,10 +51,10 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-white font-medium">
               <li><Link href="/vegetables" className="hover:text-primary transition-colors">Fresh Vegetables</Link></li>
               <li><Link href="/fruits" className="hover:text-primary transition-colors">Fruits</Link></li>
-              {isSupplier && <li><Link href="/bulk-orders" className="hover:text-primary transition-colors">Bulk Orders</Link></li>}
+              {isSeller && <li><Link href="/bulk-orders" className="hover:text-primary transition-colors">Bulk Orders</Link></li>}
               <li><Link href="/farmers" className="hover:text-primary transition-colors">Our Top Farmers</Link></li>
               <li><Link href="/offers" className="hover:text-primary transition-colors">Today's Offers</Link></li>
-              {!isSupplier && <li><Link href="/register" className="hover:text-primary transition-colors">Become a Supplier</Link></li>}
+              {!isSeller && <li><Link href="/register" className="hover:text-primary transition-colors">Become a Seller</Link></li>}
             </ul>
           </div>
 
