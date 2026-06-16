@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { User, Camera, Mail, Phone, MapPin, LogOut, ShoppingBag, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFetch } from "@/lib/safeFetch";
 
 export default function Profile() {
   const { user, logout } = useAuth();
@@ -23,31 +24,30 @@ export default function Profile() {
   }, [user]);
 
   async function fetchProfile() {
-    const res = await fetch("/api/profile", { headers: { userid: user.id } });
-    if (res.ok) {
-      const data = await res.json();
+    const { ok, data } = await safeFetch("/api/profile", { headers: { userid: user.id } });
+    if (ok && data) {
       setProfile(data);
       setForm({ name: data.name, phone: data.phone || "", address: data.address || "", location: data.location || "" });
     }
   }
 
   async function fetchOrders() {
-    const res = await fetch(`/api/orders/user?user_id=${user.id}`);
-    if (res.ok) setOrders(await res.json());
+    const { ok, data } = await safeFetch(`/api/orders/user?user_id=${user.id}`);
+    if (ok && data) setOrders(data);
   }
 
   async function handleUpdate(e) {
     e.preventDefault();
-    const res = await fetch("/api/profile/update", {
+    const { ok, data } = await safeFetch("/api/profile/update", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userid: user.id, ...form }),
     });
-    if (res.ok) {
+    if (ok) {
       setMessage("Profile updated!");
       setEditing(false);
       fetchProfile();
     } else {
-      setMessage("Update failed");
+      setMessage("Update failed. Server may be starting up.");
     }
   }
 
@@ -58,9 +58,8 @@ export default function Profile() {
     const fd = new FormData();
     fd.append("photo", file);
     fd.append("userid", user.id);
-    const res = await fetch("/api/profile/photo", { method: "POST", body: fd });
-    if (res.ok) {
-      const data = await res.json();
+    const { ok, data } = await safeFetch("/api/profile/photo", { method: "POST", body: fd });
+    if (ok && data) {
       setProfile(prev => ({ ...prev, profile_picture: data.profile_picture }));
       setMessage("Photo updated!");
     }

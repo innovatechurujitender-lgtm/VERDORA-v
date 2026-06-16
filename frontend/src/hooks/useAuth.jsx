@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext, useCallback } from "react";
+import { safeFetch } from "@/lib/safeFetch";
 
 const AuthContext = createContext(undefined);
 
@@ -27,13 +28,12 @@ export function AuthProvider({ children }) {
         return;
       }
       if (parsed.firebase_uid) {
-        const res = await fetch("/api/auth/login", {
+        const { ok, data } = await safeFetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ firebase_uid: parsed.firebase_uid })
         });
-        if (!res.ok) { logout(); setLoading(false); return; }
-        const data = await res.json();
+        if (!ok || !data) { logout(); setLoading(false); return; }
         setUser(data);
         localStorage.setItem("verdora_user", JSON.stringify(data));
       }
@@ -59,26 +59,24 @@ export function AuthProvider({ children }) {
   }, [refreshUser]);
 
   async function login(firebase_uid) {
-    const res = await fetch("/api/auth/login", {
+    const { ok, data } = await safeFetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ firebase_uid })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Login failed");
+    if (!ok || !data) throw new Error("Login failed. Server is starting up, please try again.");
     setUser(data);
     localStorage.setItem("verdora_user", JSON.stringify(data));
     return data;
   }
 
   async function emailLogin(email, password) {
-    const res = await fetch("/api/auth/email/login", {
+    const { ok, data } = await safeFetch("/api/auth/email/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password })
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error || "Login failed");
+    if (!ok || !data) throw new Error("Login failed. Server is starting up, please try again.");
     const userData = { ...data, _emailLogin: true };
     setUser(userData);
     localStorage.setItem("verdora_user", JSON.stringify(userData));

@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { ArrowRight, Star, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { safeFetch } from "@/lib/safeFetch";
 
 const categoryRoute = {
   Fruits: "/fruits",
@@ -16,11 +17,12 @@ export default function ProductsSection() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/marketplace/products")
-      .then(res => res.ok ? res.json() : [])
-      .then(data => {
-        const sorted = [...data].sort((a, b) => (a.is_featured === b.is_featured ? 0 : a.is_featured ? -1 : 1)).slice(0, 8);
-        setProducts(sorted);
+    safeFetch("/api/marketplace/products")
+      .then(({ data }) => {
+        if (data) {
+          const sorted = [...data].sort((a, b) => (a.is_featured === b.is_featured ? 0 : a.is_featured ? -1 : 1)).slice(0, 8);
+          setProducts(sorted);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));

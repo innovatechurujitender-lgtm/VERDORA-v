@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import logoPath from "@assets/png-removebg-preview_1779963000572.png";
 import { useAuth } from "@/hooks/useAuth";
 import SellerProductForm from "@/components/SellerProductForm";
+import { safeFetch } from "@/lib/safeFetch";
 
 const statCards = [
   { label: "Total Revenue", value: "₹0", sub: "All time", icon: Wallet, highlight: true },
@@ -51,8 +52,8 @@ export default function SellerDashboard() {
 
   async function fetchProducts() {
     setFetching(true);
-    const res = await fetch(`/api/seller/products?seller_id=${user.id}`);
-    if (res.ok) setSellerProducts(await res.json());
+    const { ok, data } = await safeFetch(`/api/seller/products?seller_id=${user.id}`);
+    if (ok && data) setSellerProducts(data);
     setFetching(false);
   }
 
@@ -81,14 +82,13 @@ export default function SellerDashboard() {
     const fd = new FormData();
     fd.append("seller_id", user.id);
     Object.entries(editForm).forEach(([k, v]) => fd.append(k, v));
-    const res = await fetch(`/api/seller/products/${editingProduct.id}`, { method: "PUT", body: fd });
-    const data = await res.json();
-    if (res.ok) {
+    const { ok, data } = await safeFetch(`/api/seller/products/${editingProduct.id}`, { method: "PUT", body: fd });
+    if (ok && data) {
       setEditMsg("Updated!");
       setEditingProduct(null);
       fetchProducts();
     } else {
-      setEditMsg(data.error || "Update failed");
+      setEditMsg(data?.error || "Update failed. Server may be starting up.");
     }
     setEditLoading(false);
   }

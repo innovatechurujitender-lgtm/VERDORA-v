@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFetch } from "@/lib/safeFetch";
 
 export default function Checkout() {
   const { cartItems, cartCount, clearCart } = useCart();
@@ -29,9 +30,8 @@ export default function Checkout() {
 
   useEffect(() => {
     if (paymentMethod === "UPI" && computedTotal > 0) {
-      fetch(`/api/payment/upi-info?amount=${computedTotal}&name=${encodeURIComponent(form.name || "Verdora")}`)
-        .then(r => r.json())
-        .then(data => { setUpiInfo(data); setCountdown(30); });
+      safeFetch(`/api/payment/upi-info?amount=${computedTotal}&name=${encodeURIComponent(form.name || "Verdora")}`)
+        .then(({ data }) => { if (data) { setUpiInfo(data); setCountdown(30); } });
     }
   }, [paymentMethod, computedTotal, form.name]);
 
@@ -42,7 +42,7 @@ export default function Checkout() {
   }, [countdown]);
 
   async function createOrder(paymentStatus) {
-    const res = await fetch("/api/orders/create", {
+    const { ok, data } = await safeFetch("/api/orders/create", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         user_id: user?.id, items: cartItems, total: computedTotal,
@@ -51,7 +51,8 @@ export default function Checkout() {
         upi_ref: paymentMethod === "UPI" ? upiRef : "",
       }),
     });
-    return await res.json();
+    if (!ok || !data) throw new Error("Server is starting up. Please try again.");
+    return data;
   }
 
   async function handlePlaceOrder() {
@@ -64,9 +65,8 @@ export default function Checkout() {
       if (paymentMethod === "UPI") {
         setUpiInfo(null);
         setTimeout(() => {
-          fetch(`/api/payment/upi-info?amount=${computedTotal}&name=${encodeURIComponent(form.name)}`)
-            .then(r => r.json())
-            .then(data => setUpiInfo(data));
+          safeFetch(`/api/payment/upi-info?amount=${computedTotal}&name=${encodeURIComponent(form.name)}`)
+            .then(({ data }) => { if (data) setUpiInfo(data); });
         }, 100);
         setPaid(false);
         setProcessing(false);

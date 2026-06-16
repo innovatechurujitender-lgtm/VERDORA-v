@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
+import { safeFetch } from "@/lib/safeFetch";
 
 const subcategories = ["All", "Fresh"];
 
@@ -16,9 +17,8 @@ export default function Fruits() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/marketplace/products?category=Fruits")
-      .then(res => res.ok ? res.json() : [])
-      .then(data => setAllFruits(data))
+    safeFetch("/api/marketplace/products?category=Fruits")
+      .then(({ data }) => { if (data) setAllFruits(data); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

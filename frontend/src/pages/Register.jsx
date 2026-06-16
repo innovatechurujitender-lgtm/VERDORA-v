@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Mail, KeyRound, Lock, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoPath from "@assets/png-removebg-preview_1779963000572.png";
+import { safeFetch } from "@/lib/safeFetch";
 
 export default function Register() {
   const [, setLocation] = useLocation();
@@ -20,13 +21,13 @@ export default function Register() {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/auth/email/send-otp", {
+      const { ok, data } = await safeFetch("/api/auth/email/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!ok || !data) throw new Error("Server is starting up. Please try again.");
+      if (data.error) throw new Error(data.error);
       setStep("otp");
     } catch (err) {
       setMessage(err.message);
@@ -40,13 +41,13 @@ export default function Register() {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/auth/email/verify-otp", {
+      const { ok, data } = await safeFetch("/api/auth/email/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!ok || !data) throw new Error("Server is starting up. Please try again.");
+      if (data.error) throw new Error(data.error);
       setStep("details");
     } catch (err) {
       setMessage(err.message);
@@ -62,13 +63,13 @@ export default function Register() {
     setLoading(true);
     setMessage(null);
     try {
-      const res = await fetch("/api/auth/email/create-account", {
+      const { ok, data } = await safeFetch("/api/auth/email/create-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!ok || !data) throw new Error("Server is starting up. Please try again.");
+      if (data.error) throw new Error(data.error);
       setMessage(data.message);
       setTimeout(() => setLocation("/login"), 1500);
     } catch (err) {

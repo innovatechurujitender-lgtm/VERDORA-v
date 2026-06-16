@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import logoPath from "@assets/png-removebg-preview_1779963000572.png";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFetch } from "@/lib/safeFetch";
 
 export default function AdminPanel() {
   const { user, logout } = useAuth();
@@ -32,17 +33,16 @@ export default function AdminPanel() {
         setUsers([]);
         return;
       }
-      const res = await fetch("/api/admin/users", { headers });
-      if (!res.ok) {
-        if (res.status === 401) {
+      const { ok, status, data } = await safeFetch("/api/admin/users", { headers });
+      if (!ok) {
+        if (status === 401) {
           logout();
           setLocation("/login");
           return;
         }
         throw new Error("Failed to fetch users");
       }
-      const data = await res.json();
-      setUsers(data);
+      if (data) setUsers(data);
     } catch {
       setUsers([]);
     } finally {

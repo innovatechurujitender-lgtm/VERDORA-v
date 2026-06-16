@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
+import { safeFetch } from "@/lib/safeFetch";
 
 const categories = ["All", "Vegetables", "Fruits"];
 
@@ -22,8 +23,8 @@ export default function Marketplace() {
   async function fetchProducts() {
     setLoading(true);
     const url = category === "All" ? "/api/marketplace/products" : `/api/marketplace/products?category=${category}`;
-    const res = await fetch(url);
-    if (res.ok) setProducts(await res.json());
+    const { ok, data } = await safeFetch(url);
+    if (ok && data) setProducts(data);
     setLoading(false);
   }
 

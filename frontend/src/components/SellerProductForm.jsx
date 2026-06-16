@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Upload, MapPin, Package, Image } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { safeFetch } from "@/lib/safeFetch";
 
 export default function SellerProductForm({ onSuccess, defaultCategory = "Vegetables" }) {
   const { user } = useAuth();
@@ -39,16 +40,15 @@ export default function SellerProductForm({ onSuccess, defaultCategory = "Vegeta
     fd.append("freshness", form.freshness);
     if (imageFile) fd.append("image", imageFile);
 
-    const res = await fetch("/api/seller/products", { method: "POST", body: fd });
-    const data = await res.json();
-    if (res.ok) {
+    const { ok, data } = await safeFetch("/api/seller/products", { method: "POST", body: fd });
+    if (ok && data) {
       setMessage("Product listed successfully!");
       setForm({ name: "", description: "", price_per_kg: "", location: "", latitude: "", longitude: "", daily_stock: "", category: form.category, contact_phone: "", freshness: "Fresh" });
       setImageFile(null);
       setImagePreview("");
       if (onSuccess) onSuccess();
     } else {
-      setMessage(data.error || "Failed to list product");
+      setMessage(data?.error || "Failed to list product. Server may be starting up.");
     }
     setLoading(false);
   }
