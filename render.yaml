@@ -14,12 +14,18 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      - key: FOUNDER_NAME
-        value: JITENDER
-      - key: FIREBASE_PROJECT_ID
-        value: verdora-1c2ac
-      - key: FIREBASE_CLIENT_EMAIL
+      - key: UPI_ID
         sync: false
-      - key: FIREBASE_PRIVATE_KEY
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: BREVO_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
         sync: false
     healthCheckPath: /health
