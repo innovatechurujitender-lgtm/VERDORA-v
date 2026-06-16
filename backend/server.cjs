@@ -10,7 +10,17 @@ const { supabase } = require("./lib/supabase");
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://frontend-gamma-sandy-72.vercel.app",
+    /\.vercel\.app$/,
+    "http://localhost:5173",
+    "http://localhost:3000",
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "userid", "seller_id"],
+}));
 
 const PUBLIC_DIR = path.join(__dirname, "public");
 if (fs.existsSync(PUBLIC_DIR)) {
